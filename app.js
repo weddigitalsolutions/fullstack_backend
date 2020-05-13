@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const placesRoutes = require("./routes/places.routes");
 const usersRoutes = require("./routes/users.routes");
 const HttpError = require("./models/http-error");
+const { db } = require("./util/databse.js");
 
 const app = express();
 
@@ -29,4 +30,12 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "An unknown error ocurred" });
 });
 
-app.listen(5000);
+db.sequelize
+  .sync() //.sync({ force: true })
+  .then(() => {
+    console.log("Connection has been established successfully.");
+    app.listen(5000);
+  })
+  .catch((err) => {
+    console.error("Unable to connect to the database:", err);
+  });

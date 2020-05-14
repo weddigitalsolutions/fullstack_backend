@@ -2,13 +2,14 @@ const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
 const { User } = require("../util/databse");
+const { Place } = require("../util/databse");
 
 const getUsers = async (req, res, next) => {
   let users;
 
   try {
-    //users = await User.findAll({ attributes: ["id", "name", "email"] });
-    users = await User.findAll({ attributes: { exclude: "password" } });
+    users = await User.findAll({ include: Place });
+    //users = await User.getPlaces();
   } catch (err) {
     return next(
       new HttpError("Fetching users failed. Please try again later.", 500)

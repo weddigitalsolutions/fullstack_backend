@@ -32,10 +32,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
-      creator: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
     },
     {
       timestamps: true,

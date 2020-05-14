@@ -1,9 +1,9 @@
-const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
 const getCoordsForAddress = require("../util/location");
 const { Place } = require("../util/databse");
+const { User } = require("../util/databse");
 
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
@@ -47,15 +47,24 @@ const createPlace = async (req, res, next) => {
       new HttpError("Invalid inputs passed. Please check your data.", 422)
     );
   }
-  const { title, description, address, creator } = req.body;
 
-  let coordinates, createdPlace;
-
+  let user;
+  let place;
   try {
+    user = await User.findByPk("64b4ec58-7bee-43e2-a12b-bfbb0cd6b203", {
+      attributes: ["id"],
+    });
+
+    if (!user) {
+      return next(
+        new HttpError("Could not find a user for the provided id.", 422)
+      );
+    }
+    const { title, description, address } = req.body;
     coordinates = await getCoordsForAddress(address);
     const { lat, lng } = coordinates;
 
-    createdPlace = await Place.create({
+    const newPlace = {
       title,
       description,
       image:
@@ -63,13 +72,14 @@ const createPlace = async (req, res, next) => {
       address,
       lat: lat,
       lng: lng,
-      creator,
-    });
+    };
+
+    place = await user.createPlace(newPlace);
   } catch (err) {
-    return next(new HttpError("Creating place failed, please try again", 500));
+    return next(new HttpError(err.message, 500));
   }
 
-  res.status(201).json({ place: createdPlace });
+  res.status(201).json({ place: place });
 };
 
 const updatePlaceById = async (req, res, next) => {

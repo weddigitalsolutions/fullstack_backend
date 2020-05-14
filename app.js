@@ -31,7 +31,8 @@ app.use((error, req, res, next) => {
 });
 
 db.sequelize
-  .sync() //.sync({ force: true })
+  .sync()
+  //.sync({ force: true })
   .then(() => {
     console.log("Connection has been established successfully.");
     app.listen(5000);

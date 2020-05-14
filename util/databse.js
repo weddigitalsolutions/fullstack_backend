@@ -1,9 +1,8 @@
 require("dotenv").config();
 const Sequelize = require("sequelize");
 
-/* const UserModel = require("../models/user");
-const PostModel = require("../models/post"); */
 const PlaceModel = require("../models/places.model");
+const UserModel = require("../models/users.model");
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -18,17 +17,21 @@ const sequelize = new Sequelize(
 
 /* const User = UserModel(sequelize, Sequelize);
 const Post = PostModel(sequelize, Sequelize);
-
 Post.belongsTo(User, { as: "creator" });
-User.hasMany(Post); */
+User.hasMany(Post); 
+*/
 
 const Place = PlaceModel(sequelize, Sequelize);
+const User = UserModel(sequelize, Sequelize);
+
+Place.belongsTo(User);
+User.hasMany(Place);
 
 db = {
   Sequelize: Sequelize,
   sequelize: sequelize,
   Place: Place,
-  //Post: Post,
+  User: User,
 };
 
-module.exports = { db, Place };
+module.exports = { db, Place, User };

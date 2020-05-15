@@ -26,7 +26,7 @@ const getPlacesByUserId = async (req, res, next) => {
 
   let places;
   try {
-    places = await Place.findAll({ where: { creator: userId } });
+    places = await Place.findAll({ where: { userId: userId } });
   } catch (err) {
     return next(new HttpError("Could not retrieve a place.", 500));
   }
@@ -51,7 +51,8 @@ const createPlace = async (req, res, next) => {
   let user;
   let place;
   try {
-    user = await User.findByPk("64b4ec58-7bee-43e2-a12b-bfbb0cd6b203", {
+    const { title, description, address, userId } = req.body;
+    user = await User.findByPk(userId, {
       attributes: ["id"],
     });
 
@@ -60,7 +61,7 @@ const createPlace = async (req, res, next) => {
         new HttpError("Could not find a user for the provided id.", 422)
       );
     }
-    const { title, description, address } = req.body;
+
     coordinates = await getCoordsForAddress(address);
     const { lat, lng } = coordinates;
 

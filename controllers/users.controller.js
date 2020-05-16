@@ -30,7 +30,7 @@ const signup = async (req, res, next) => {
 
   let createdUser;
   try {
-    const { name, email, password } = req.body;
+    const { name, email, image, password } = req.body;
     const existingUser = await User.findOne({
       where: { email: email },
       indexHints: ["use"],
@@ -45,7 +45,12 @@ const signup = async (req, res, next) => {
       );
     }
 
-    createdUser = await User.create({ name, email, password });
+    createdUser = await User.create({
+      name,
+      email,
+      image: req.file.path,
+      password,
+    });
   } catch (err) {
     return next(
       new HttpError("Problem creating a user. Try again later.", 500)

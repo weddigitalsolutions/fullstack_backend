@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -9,6 +11,9 @@ const { db } = require("./util/databse.js");
 const app = express();
 
 app.use(bodyParser.json());
+
+// Middleware to serve images statically
+app.use("/uploads/images", express.static(path.join("uploads", "images")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -32,6 +37,13 @@ app.use((req, res, next) => {
 
 //Middleware to handle errors
 app.use((error, req, res, next) => {
+  // Clear the image with have an error - BEGIN
+  if (req.file) {
+    fs.unlink(req.file.path, (er) => {
+      console.log(error);
+    });
+  }
+  // END
   if (res.headerSent) {
     return next(error);
   }

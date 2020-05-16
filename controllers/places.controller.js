@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator");
+const fs = require("fs");
 
 const HttpError = require("../models/http-error");
 const getCoordsForAddress = require("../util/location");
@@ -68,8 +69,7 @@ const createPlace = async (req, res, next) => {
     const newPlace = {
       title,
       description,
-      image:
-        "https://ogimg.infoglobo.com.br/in/8786075-50c-0d8/FT1086A/652/x2013-623257271-2013062148497.jpg_20130621.jpg.pagespeed.ic.wAPziDb7rv.jpg",
+      image: req.file.path,
       address,
       lat: lat,
       lng: lng,
@@ -105,13 +105,18 @@ const updatePlaceById = async (req, res, next) => {
 };
 
 const deletePlace = async (req, res, next) => {
+  const placeId = req.params.pid;
+  let imagePath;
   try {
-    const placeId = req.params.pid;
-    Place.destroy({ where: { id: placeId } });
+    const place = await Place.findByPk(placeId);
+    imagePath = place.image;
+    place.destroy();
   } catch (err) {
     return next(new HttpError("Could not delete a place.", 500));
   }
-
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
   res.status(200).json({ message: "Deleted place" });
 };
 

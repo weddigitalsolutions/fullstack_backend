@@ -52,7 +52,8 @@ const createPlace = async (req, res, next) => {
   let user;
   let place;
   try {
-    const { title, description, address, userId } = req.body;
+    const userId = req.userData.userId;
+    const { title, description, address } = req.body;
     user = await User.findByPk(userId, {
       attributes: ["id"],
     });
@@ -63,16 +64,18 @@ const createPlace = async (req, res, next) => {
       );
     }
 
-    coordinates = await getCoordsForAddress(address);
-    const { lat, lng } = coordinates;
+    //coordinates = await getCoordsForAddress(address);
+    //const { lat, lng } = coordinates;
 
     const newPlace = {
       title,
       description,
       image: req.file.path,
       address,
-      lat: lat,
-      lng: lng,
+      /* lat: lat,
+      lng: lng, */
+      lat: -10,
+      lng: -20,
     };
 
     place = await user.createPlace(newPlace);
@@ -87,36 +90,59 @@ const updatePlaceById = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    throw new HttpError("Invalid inputs passed. Please check your data.", 422);
+    next(new HttpError("Invalid inputs passed. Please check your data.", 422));
   }
 
-  let updatedPlace;
+  let place;
   try {
-    const { title, description } = req.body;
     const placeId = req.params.pid;
-    const place = await Place.findByPk(placeId);
-    place.title = title;
-    place.description = description;
+    place = await Place.findByPk(placeId);
+  } catch (err) {
+    return next(new HttpError("Could not update a place.", 500));
+  }
+
+  if (place.UserId !== req.userData.userId) {
+    return next(new HttpError("You are not allowed to edit this place.", 403));
+  }
+  let updatedPlace;
+  const { title, description } = req.body;
+
+  place.title = title;
+  place.description = description;
+
+  try {
     updatedPlace = await place.save();
   } catch (err) {
     return next(new HttpError("Could not update a place.", 500));
   }
+
   res.status(200).json({ place: updatedPlace });
 };
 
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
   let imagePath;
+  let place;
   try {
-    const place = await Place.findByPk(placeId);
+    place = await Place.findByPk(placeId);
     imagePath = place.image;
-    place.destroy();
   } catch (err) {
     return next(new HttpError("Could not delete a place.", 500));
   }
-  fs.unlink(imagePath, (err) => {
-    console.log(err);
-  });
+
+  if (place.UserId !== req.userData.userId) {
+    return next(new HttpError("You are not allowed to edit this place.", 403));
+  }
+
+  try {
+    place.destroy();
+    fs.unlink(imagePath, (err) => {
+      console.log(err);
+    });
+  } catch (err) {
+    return next(new HttpError("Could not delete a place.", 500));
+  }
+
   res.status(200).json({ message: "Deleted place" });
 };
 

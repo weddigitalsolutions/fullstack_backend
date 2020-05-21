@@ -1,0 +1,9 @@
+{
+  "env": {
+    "DB_HOST": "fullstack.mysql.dbaas.com.br",
+    "DB_NAME": "fullstack",
+    "DB_USER": "fullstack",
+    "DB_PASS": "dan05042004@",
+    "JWT_SECRET": "supersecret_dontshare "
+  }
+}
